@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GWME Admin Panel</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --gold:#C9A84C;--gold2:#E8C96A;
+      --dark:#0D0D0D;--dark2:#161616;--dark3:#1E1E1E;
+      --bg:#F8F9FB;--white:#fff;--text:#111;--muted:#6b7280;
+      --border:#E5E7EB;--success:#22c55e;--danger:#ef4444;
+      --sidebar-w:260px;--font:'Poppins',sans-serif;
+    }
+    body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+
+    /* SIDEBAR */
+    aside{width:var(--sidebar-w);background:var(--dark);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;overflow-y:auto}
+    .sidebar-brand{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:12px}
+    .sidebar-logo{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--dark)}
+    .sidebar-brand-text{color:#fff;font-size:14px;font-weight:600}
+    .sidebar-brand-sub{color:rgba(255,255,255,0.4);font-size:11px}
+    .sidebar-nav{padding:16px 12px;flex:1}
+    .nav-section-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:8px 8px 6px;margin-top:16px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;margin-bottom:2px;color:rgba(255,255,255,0.6);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;text-decoration:none;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
+    .nav-item:hover{background:rgba(255,255,255,0.07);color:#fff}
+    .nav-item.active{background:rgba(201,168,76,0.15);color:var(--gold)}
+    .nav-item .icon{font-size:16px;width:20px;text-align:center}
+    .sidebar-footer{padding:16px 12px;border-top:1px solid rgba(255,255,255,0.08)}
+    .user-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+    .user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--dark)}
+    .user-name{font-size:13px;font-weight:600;color:#fff}
+    .user-role{font-size:11px;color:rgba(255,255,255,0.4)}
+    .logout-btn{width:100%;padding:8px;border-radius:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;font-size:13px;cursor:pointer;font-family:var(--font);transition:all 0.15s}
+    .logout-btn:hover{background:rgba(239,68,68,0.2)}
+
+    /* MAIN */
+    .main-content{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column}
+    .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40}
+    .topbar-title{font-size:15px;font-weight:700}
+    .topbar-actions{display:flex;align-items:center;gap:10px}
+    .view-blog-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:8px;border:1px solid var(--border);font-family:var(--font);transition:all 0.15s}
+    .view-blog-btn:hover{border-color:var(--dark);color:var(--dark)}
+    .new-post-btn{background:var(--dark);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:opacity 0.15s}
+    .new-post-btn:hover{opacity:0.85}
+
+    /* PAGES */
+    .page{display:none;padding:32px}
+    .page.active{display:block}
+
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+    .stat-card{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:20px 22px}
+    .stat-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;font-weight:600}
+    .stat-val{font-size:2rem;font-weight:800;color:var(--text);letter-spacing:-1px}
+    .stat-sub{font-size:12px;color:var(--muted);margin-top:4px}
+
+    /* TABLE */
+    .table-card{background:var(--white);border-radius:12px;border:1px solid var(--border);overflow:hidden}
+    .table-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
+    .table-header h3{font-size:14px;font-weight:700}
+    table{width:100%;border-collapse:collapse}
+    thead th{background:var(--bg);font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);padding:10px 20px;text-align:left}
+    tbody tr{border-top:1px solid var(--border)}
+    tbody tr:hover{background:var(--bg)}
+    td{padding:13px 20px;font-size:13px;vertical-align:middle}
+    .post-title-cell{font-weight:500;max-width:280px}
+    .post-title-cell small{display:block;color:var(--muted);font-size:11px;margin-top:2px;font-weight:400}
+    .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600}
+    .badge-published{background:rgba(34,197,94,0.1);color:#16a34a}
+    .badge-draft{background:rgba(245,158,11,0.1);color:#d97706}
+    .badge-cat{background:rgba(201,168,76,0.12);color:#8a6d1e}
+    .action-btns{display:flex;gap:6px}
+    .btn-icon{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;font-family:var(--font)}
+    .btn-icon:hover{background:var(--bg);border-color:var(--dark)}
+    .btn-icon.danger:hover{border-color:var(--danger);background:rgba(239,68,68,0.05)}
+    .btn-icon:disabled{opacity:0.4;cursor:not-allowed}
+
+    /* EDITOR */
+    .editor-layout{display:grid;grid-template-columns:1fr 340px;gap:24px}
+    .editor-tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border)}
+    .etab{padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;font-family:var(--font);background:none;border-top:none;border-left:none;border-right:none}
+    .etab.active{color:var(--dark);border-bottom-color:var(--gold)}
+    .etab-panel{display:none}
+    .etab-panel.active{display:block}
+
+    /* FORM */
+    .field-group{margin-bottom:18px}
+    .field-label{font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;display:block}
+    .field-label .req{color:var(--danger);margin-left:2px}
+    .field-input,.field-select,.field-textarea{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;color:var(--text);outline:none;font-family:var(--font);background:var(--white);transition:border-color 0.2s}
+    .field-input:focus,.field-select:focus,.field-textarea:focus{border-color:var(--gold)}
+    .field-textarea{resize:vertical;line-height:1.6}
+    .content-editor{width:100%;min-height:320px;padding:16px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;font-family:var(--font);color:var(--text);outline:none;line-height:1.75;background:var(--white);resize:vertical;transition:border-color 0.2s}
+    .content-editor:focus{border-color:var(--gold)}
+    .field-hint{font-size:11px;color:var(--muted);margin-top:5px}
+    .char-wrap{position:relative}
+    .char-count{position:absolute;right:12px;bottom:10px;font-size:11px;font-weight:600;pointer-events:none}
+    .char-count.ok{color:var(--success)}
+    .char-count.warn{color:#f59e0b}
+    .char-count.over{color:var(--danger)}
+
+    /* SEO PANEL */
+    .seo-panel{background:var(--white);border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:20px}
+    .seo-panel-header{padding:14px 18px;background:linear-gradient(90deg,rgba(201,168,76,0.08),transparent);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+    .seo-panel-header h4{font-size:13px;font-weight:700}
+    .seo-badge{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:var(--gold);color:var(--dark);padding:2px 8px;border-radius:20px}
+    .seo-panel-body{padding:18px}
+    .seo-preview{background:var(--bg);border-radius:8px;padding:14px;margin-bottom:16px;border:1px solid var(--border)}
+    .seo-preview-url{font-size:11px;color:#1a6b3a;margin-bottom:4px;font-weight:500}
+    .seo-preview-title{font-size:16px;color:#1a0dab;font-weight:600;margin-bottom:3px;line-height:1.3}
+    .seo-preview-desc{font-size:13px;color:#4d5156;line-height:1.4}
+    .seo-score{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--border);margin-top:14px}
+    .score-bar{flex:1;height:6px;border-radius:3px;background:var(--border);overflow:hidden}
+    .score-fill{height:100%;border-radius:3px;transition:width 0.5s,background 0.5s}
+    .score-label{font-size:11px;font-weight:700;min-width:60px;text-align:right}
+
+    /* KEYWORD BUILDER */
+    .keyword-builder{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+    .keyword-input-row{display:flex}
+    .keyword-input-row input{flex:1;padding:9px 14px;border:none;font-size:13px;font-family:var(--font);outline:none;border-right:1px solid var(--border)}
+    .keyword-add-btn{padding:9px 16px;background:var(--dark);color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap}
+    .keyword-add-btn:hover{opacity:0.8}
+    .keyword-tags{padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px;min-height:40px;background:var(--bg)}
+    .kw-tag{display:flex;align-items:center;gap:4px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#8a6d1e;font-size:12px;font-weight:600;padding:3px 8px 3px 10px;border-radius:20px}
+    .kw-remove{cursor:pointer;font-size:14px;color:var(--muted);line-height:1;transition:color 0.15s;background:none;border:none;font-family:var(--font)}
+    .kw-remove:hover{color:var(--danger)}
+    .kw-count{font-size:11px;color:var(--muted);padding:6px 12px;background:var(--bg);border-top:1px solid var(--border)}
+
+    /* SIDEBAR CARDS */
+    .sidebar-card{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:18px;margin-bottom:18px}
+    .sidebar-card h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:14px}
+    .emoji-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+    .emoji-opt{text-align:center;padding:7px;border-radius:6px;cursor:pointer;font-size:18px;border:1px solid var(--border);transition:all 0.15s;background:none;font-family:var(--font)}
+    .emoji-opt:hover,.emoji-opt.selected{border-color:var(--gold);background:rgba(201,168,76,0.08)}
+    .color-grid{display:flex;gap:7px;flex-wrap:wrap}
+    .color-opt{width:26px;height:26px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all 0.15s}
+    .color-opt.selected{border-color:var(--gold);transform:scale(1.15)}
+    .publish-btn{width:100%;padding:12px;border-radius:8px;background:var(--dark);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:8px;transition:opacity 0.15s}
+    .publish-btn:hover:not(:disabled){opacity:0.85}
+    .publish-btn:disabled{opacity:0.5;cursor:not-allowed}
+    .save-draft-btn{width:100%;padding:11px;border-radius:8px;background:transparent;color:var(--muted);border:1px solid var(--border);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font);transition:all 0.15s}
+    .save-draft-btn:hover:not(:disabled){border-color:var(--dark);color:var(--dark)}
+    .save-draft-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+    /* LOADING STATES */
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .loading-row{padding:16px 20px;display:flex;gap:12px;align-items:center;border-top:1px solid var(--border)}
+    .api-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;margin-right:6px;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .empty-table{text-align:center;padding:60px;color:var(--muted)}
+    .empty-table .ei{font-size:2.5rem;margin-bottom:12px;opacity:0.4}
+
+    /* CONFIRM MODAL */
+    .confirm-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.5);align-items:center;justify-content:center}
+    .confirm-overlay.open{display:flex}
+    .confirm-box{background:var(--white);border-radius:16px;padding:32px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+    .confirm-box h3{font-size:1.1rem;font-weight:700;margin-bottom:10px}
+    .confirm-box p{color:var(--muted);font-size:13px;margin-bottom:24px}
+    .confirm-actions{display:flex;gap:10px}
+    .confirm-cancel{flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:transparent;cursor:pointer;font-family:var(--font);font-size:13px}
+    .confirm-delete{flex:1;padding:10px;border:none;border-radius:8px;background:var(--danger);color:#fff;cursor:pointer;font-weight:600;font-family:var(--font);font-size:13px}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--dark);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:9999;transform:translateY(60px);opacity:0;transition:all 0.3s;pointer-events:none;border-left:3px solid var(--gold);max-width:320px}
+    .toast.show{transform:translateY(0);opacity:1}
+    .toast.error{border-left-color:var(--danger)}
+    .toast.success{border-left-color:var(--success)}
+
+    /* API STATUS BADGE */
+    .api-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid}
+    .api-status.connected{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.3);color:#16a34a}
+    .api-status.error{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);color:#dc2626}
+    .api-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+    @media(max-width:1100px){.editor-layout{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside>
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">GW</div>
+    <div><div class="sidebar-brand-text">GWME Admin</div><div class="sidebar-brand-sub">Blog Manager</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Navigation</div>
+    <button class="nav-item active" onclick="showPage('dashboard',this)"><span class="icon">📊</span>Dashboard</button>
+    <button class="nav-item" onclick="showPage('posts',this)"><span class="icon">📝</span>All Posts</button>
+    <button class="nav-item" onclick="newPost();showPage('editor',this)"><span class="icon">✏️</span>New Post</button>
+    <div class="nav-section-label">Filter</div>
+    <button class="nav-item" onclick="setStatusFilter('published');showPage('posts',this)"><span class="icon">✅</span>Published</button>
+    <button class="nav-item" onclick="setStatusFilter('draft');showPage('posts',this)"><span class="icon">📋</span>Drafts</button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-avatar">SS</div>
+      <div><div class="user-name" id="sessionUser">Admin</div><div class="user-role">Super Admin · GWME</div></div>
+    </div>
+    <button class="logout-btn" onclick="logout()">🚪 Sign Out</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">Dashboard</div>
+    <div class="topbar-actions">
+      <div class="api-status connected" id="apiStatus"><span class="api-dot"></span>API Connected</div>
+      <a href="index.html" target="_blank" class="view-blog-btn">🔗 View Blog</a>
+      <button class="new-post-btn" onclick="newPost();showPage('editor',null)">+ New Post</button>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD ── -->
+  <div class="page active" id="page-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total Posts</div><div class="stat-val" id="statTotal">—</div><div class="stat-sub">All articles</div></div>
+      <div class="stat-card"><div class="stat-label">Published</div><div class="stat-val" id="statPublished">—</div><div class="stat-sub">Live on blog</div></div>
+      <div class="stat-card"><div class="stat-label">Drafts</div><div class="stat-val" id="statDrafts">—</div><div class="stat-sub">In progress</div></div>
+      <div class="stat-card"><div class="stat-label">With SEO</div><div class="stat-val" id="statSeo">—</div><div class="stat-sub">Optimised posts</div></div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><h3>Recent Posts</h3><button class="new-post-btn" onclick="newPost();showPage('editor',null)">+ New Post</button></div>
+      <div id="dashRecentTable"><div class="loading-row"><span class="skeleton" style="width:100%;height:20px"></span></div></div>
+    </div>
+  </div>
+
+  <!-- ── ALL POSTS ── -->
+  <div class="page" id="page-posts">
+    <div class="table-card">
+      <div class="table-header">
+        <h3>All Posts</h3>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <input class="field-input" style="width:200px;padding:8px 12px;font-size:13px" placeholder="Search…" id="adminSearch" oninput="debounceSearch()" />
+          <select class="field-select" style="width:140px;padding:8px 12px;font-size:13px" id="statusFilter" onchange="loadPosts()">
+            <option value="all">All Status</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+      </div>
+      <div id="postsTableWrap"><div class="loading-row"><span class="skeleton" style="width:100%;height:20px"></span></div></div>
+    </div>
+  </div>
+
+  <!-- ── EDITOR ── -->
+  <div class="page" id="page-editor">
+    <div class="editor-layout">
+      <div>
+        <div class="editor-tabs">
+          <button class="etab active" onclick="switchTab('content',this)">✏️ Content</button>
+          <button class="etab" onclick="switchTab('seo',this)">🔍 SEO Settings</button>
+        </div>
+
+        <!-- CONTENT TAB -->
+        <div class="etab-panel active" id="tab-content">
+          <div class="field-group">
+            <label class="field-label">Post Title <span class="req">*</span></label>
+            <input class="field-input" id="editTitle" placeholder="e.g. How to Win Your First Government Tender" style="font-size:15px;font-weight:600" oninput="updateSeoPreview()" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Excerpt / Summary <span class="req">*</span></label>
+            <textarea class="field-textarea" id="editExcerpt" rows="3" placeholder="Short description shown on blog listing…" oninput="updateSeoPreview()"></textarea>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Full Article Content <span class="req">*</span></label>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Use ### for headings. Wrap callouts: &lt;div class="highlight"&gt;…&lt;/div&gt;. Double line break = new paragraph.</p>
+            <textarea class="content-editor" id="editContent" placeholder="Write your full article here…"></textarea>
+          </div>
+        </div>
+
+        <!-- SEO TAB -->
+        <div class="etab-panel" id="tab-seo">
+          <div class="seo-panel">
+            <div class="seo-panel-header"><h4>Google Search Preview</h4><span class="seo-badge">Live Preview</span></div>
+            <div class="seo-panel-body">
+              <div class="seo-preview">
+                <div class="seo-preview-url" id="prevUrl">gwmeindia.com › blog › article-slug</div>
+                <div class="seo-preview-title" id="prevTitle">Your SEO title will appear here…</div>
+                <div class="seo-preview-desc" id="prevDesc">Your meta description will appear here. Keep it 120–160 characters for best results.</div>
+              </div>
+              <div class="seo-score">
+                <span style="font-size:12px;color:var(--muted);font-weight:600">SEO Score</span>
+                <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%;background:#ef4444"></div></div>
+                <span class="score-label" id="scoreLabel" style="color:#ef4444">0/100</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="seo-panel">
+            <div class="seo-panel-header"><h4>Meta Tags</h4></div>
+            <div class="seo-panel-body">
+              <div class="field-group">
+                <label class="field-label">SEO Title</label>
+                <div class="char-wrap">
+                  <input class="field-input" id="seoTitle" placeholder="e.g. Win Government Tender India | GWME" style="padding-right:60px" oninput="updateSeoPreview()" maxlength="70" />
+                  <span class="char-count warn" id="seoTitleCount">0/60</span>
+                </div>
+                <p class="field-hint">Ideal: 50–60 characters. The blue headline in Google.</p>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Meta Description</label>
+                <div class="char-wrap">
+                  <textarea class="field-textarea" id="seoDesc" rows="3" placeholder="120–155 characters. Appears below title in Google." style="padding-right:60px" oninput="updateSeoPreview()" maxlength="165"></textarea>
+                  <span class="char-count warn" style="bottom:auto;top:10px" id="seoDescCount">0/155</span>
+                </div>
+              </div>
+              <div class="field-group" style="margin-bottom:0">
+                <label class="field-label">Canonical URL</label>
+                <input class="field-input" id="seoCanonical" placeholder="https://gwmeindia.com/blog/post-slug" />
+                <p class="field-hint">Leave blank to auto-generate. Prevents duplicate content issues.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="seo-panel">
+            <div class="seo-panel-header"><h4>Focus Keywords</h4><span class="seo-badge">Ranking Signals</span></div>
+            <div class="seo-panel-body">
+              <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Keywords this post should rank for. Aim for 4–8 specific phrases.</p>
+              <div class="keyword-builder">
+                <div class="keyword-input-row">
+                  <input type="text" id="kwInput" placeholder="e.g. government tender India" onkeydown="if(event.key==='Enter'||event.key===','){event.preventDefault();addKeyword()}" />
+                  <button class="keyword-add-btn" onclick="addKeyword()">+ Add</button>
+                </div>
+                <div class="keyword-tags" id="kwTags"></div>
+                <div class="kw-count" id="kwCount">0 keywords added</div>
+              </div>
+              <div class="field-group" style="margin-top:14px;margin-bottom:0">
+                <label class="field-label">Or paste comma-separated</label>
+                <textarea class="field-textarea" id="kwBulk" rows="2" placeholder="government tender India, win MSME contract, GeM portal registration" oninput="syncBulkKeywords()"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="seo-panel">
+            <div class="seo-panel-header"><h4>Social Media (Open Graph)</h4></div>
+            <div class="seo-panel-body">
+              <div class="field-group">
+                <label class="field-label">OG Title</label>
+                <input class="field-input" id="ogTitle" placeholder="Leave blank to use SEO title" />
+                <p class="field-hint">Appears when shared on WhatsApp, LinkedIn, Twitter.</p>
+              </div>
+              <div class="field-group">
+                <label class="field-label">OG Description</label>
+                <textarea class="field-textarea" id="ogDesc" rows="2" placeholder="Leave blank to use meta description"></textarea>
+              </div>
+              <div class="field-group" style="margin-bottom:0">
+                <label class="field-label">OG Image URL</label>
+                <input class="field-input" id="ogImage" placeholder="https://gwmeindia.com/images/cover.jpg" oninput="updateSeoPreview()" />
+                <p class="field-hint">Recommended: 1200×630px thumbnail for social sharing.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="seo-panel">
+            <div class="seo-panel-header"><h4>Schema / Structured Data</h4></div>
+            <div class="seo-panel-body" style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:600">Article Schema (JSON-LD)</div><div style="font-size:12px;color:var(--muted)">Rich results — author, date, breadcrumbs</div></div>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="schemaEnabled" checked style="width:16px;height:16px;accent-color:var(--gold)" /><span style="font-size:12px;font-weight:600">On</span></label>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:600">FAQ Schema</div><div style="font-size:12px;color:var(--muted)">For posts with Q&A sections</div></div>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="faqSchema" style="width:16px;height:16px;accent-color:var(--gold)" /><span style="font-size:12px;font-weight:600">Off</span></label>
+              </div>
+            </div>
+          </div>
+        </div><!-- /seo tab -->
+      </div><!-- /left -->
+
+      <!-- RIGHT SIDEBAR -->
+      <div>
+        <div class="sidebar-card">
+          <h4>Publish Settings</h4>
+          <div class="field-group"><label class="field-label">Author</label><input class="field-input" id="editAuthor" value="Dr. Siya Seth" /></div>
+          <div class="field-group"><label class="field-label">Date</label><input class="field-input" type="date" id="editDate" /></div>
+          <div class="field-group"><label class="field-label">Read Time (mins)</label><input class="field-input" type="number" id="editReadTime" value="5" min="1" max="60" /></div>
+          <div class="field-group" style="margin-bottom:0"><label class="field-label">Category</label>
+            <select class="field-select" id="editCategory">
+              <option>Tendering</option><option>Compliance</option><option>Strategy</option>
+              <option>GeM Portal</option><option>Case Study</option><option>News & Updates</option>
+            </select>
+          </div>
+        </div>
+        <div class="sidebar-card"><h4>Cover Emoji</h4><div class="emoji-grid" id="emojiGrid"></div></div>
+        <div class="sidebar-card"><h4>Card Colour</h4><div class="color-grid" id="colorGrid"></div></div>
+        <div class="sidebar-card" style="border-color:rgba(201,168,76,0.3);background:rgba(201,168,76,0.03)">
+          <h4 style="color:#8a6d1e">Actions</h4>
+          <button class="publish-btn" id="btnPublish" onclick="savePost(true)">🚀 Publish Now</button>
+          <button class="save-draft-btn" id="btnDraft" onclick="savePost(false)">💾 Save as Draft</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /main -->
+
+<!-- CONFIRM DELETE -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3>Delete Post?</h3>
+    <p>This cannot be undone. The post will be permanently removed from the database.</p>
+    <div class="confirm-actions">
+      <button class="confirm-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-delete" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  CONFIG — Update API_BASE to match your server path
+// ════════════════════════════════════════════════════════════
+const API_BASE = './api';   // e.g. 'https://gwmeindia.com/blog/api'
+
+// ── Auth token stored in sessionStorage ONLY ────────────────
+// (no post data in localStorage — all data lives in MySQL)
+let authToken   = sessionStorage.getItem('gwme_token') || '';
+let currentUser = sessionStorage.getItem('gwme_user')  || '';
+let editingId   = null;
+let selectedEmoji = '📄';
+let selectedColor = '#0A1628';
+let keywords    = [];
+let searchTimer = null;
+
+const EMOJIS = ['📄','📋','🏛️','💼','📊','🎯','🔑','📈','⚖️','🤝','🏗️','💡','📌','🗂️','🔐','🌐','💰','🛡️','📣','🏆'];
+const COLORS  = ['#0A1628','#1E3A5F','#1A3A2A','#3B1F0A','#2D1A3A','#1A2D3A','#3A2A1A','#0F2520','#1F1A3A','#2A1A1A'];
+
+// ════════════════════════════════════════════════════════════
+//  API WRAPPER — Fetch with auth + error handling
+// ════════════════════════════════════════════════════════════
+async function api(endpoint, options = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {}),
+    ...(options.headers || {}),
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    const data = await res.json();
+
+    if (res.status === 401) {
+      // Session expired
+      sessionStorage.clear();
+      window.location.href = 'admin-login.html';
+      return null;
+    }
+
+    return { ok: res.ok, status: res.status, data };
+  } catch (err) {
+    setApiStatus(false);
+    toast('⚠️ Cannot reach server. Check your connection.', 'error');
+    console.error('API error:', err);
+    return null;
+  }
+}
+
+function setApiStatus(connected) {
+  const el = document.getElementById('apiStatus');
+  el.className = 'api-status ' + (connected ? 'connected' : 'error');
+  el.innerHTML = `<span class="api-dot"></span>${connected ? 'API Connected' : 'API Error'}`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  AUTH — Verify session on load, then init
+// ════════════════════════════════════════════════════════════
+async function init() {
+  if (!authToken) {
+    window.location.href = 'admin-login.html';
+    return;
+  }
+
+  const res = await api('auth.php?action=verify');
+  if (!res || !res.ok) {
+    sessionStorage.clear();
+    window.location.href = 'admin-login.html';
+    return;
+  }
+
+  setApiStatus(true);
+  document.getElementById('sessionUser').textContent = res.data.user || 'Admin';
+  currentUser = res.data.user;
+
+  // Initialise UI
+  document.getElementById('editDate').value = new Date().toISOString().split('T')[0];
+  initEditorOptions();
+  updateSeoPreview();
+  loadDashboard();
+
+  // Auto-renew check every 5 min
+  setInterval(async () => {
+    const r = await api('auth.php?action=verify');
+    if (!r || !r.ok) { sessionStorage.clear(); window.location.href = 'admin-login.html'; }
+  }, 5 * 60 * 1000);
+}
+
+async function logout() {
+  await api('auth.php?action=logout', {
+    method: 'POST',
+    body: JSON.stringify({ token: authToken }),
+  });
+  sessionStorage.clear();
+  window.location.href = 'admin-login.html';
+}
+
+// ════════════════════════════════════════════════════════════
+//  PAGES
+// ════════════════════════════════════════════════════════════
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+
+  const titles = { dashboard: 'Dashboard', posts: 'All Posts', editor: editingId ? 'Edit Post' : 'New Post' };
+  document.getElementById('topbarTitle').textContent = titles[name] || name;
+
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'posts') loadPosts();
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.etab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.etab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ════════════════════════════════════════════════════════════
+//  DASHBOARD  — GET /api/stats.php
+// ════════════════════════════════════════════════════════════
+async function loadDashboard() {
+  const res = await api('stats.php');
+  if (!res || !res.ok) return;
+
+  const { stats, recent } = res.data;
+  document.getElementById('statTotal').textContent     = stats.total;
+  document.getElementById('statPublished').textContent = stats.published;
+  document.getElementById('statDrafts').textContent    = stats.drafts;
+  document.getElementById('statSeo').textContent       = stats.with_seo;
+
+  document.getElementById('dashRecentTable').innerHTML = buildTable(recent, true);
+}
+
+// ════════════════════════════════════════════════════════════
+//  POSTS LIST  — GET /api/posts.php?admin=1
+// ════════════════════════════════════════════════════════════
+function setStatusFilter(val) {
+  document.getElementById('statusFilter').value = val;
+}
+
+function debounceSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadPosts, 350);
+}
+
+async function loadPosts() {
+  document.getElementById('postsTableWrap').innerHTML =
+    '<div class="loading-row"><span class="skeleton" style="width:100%;height:20px"></span></div>';
+
+  const search   = document.getElementById('adminSearch')?.value || '';
+  const sfRaw    = document.getElementById('statusFilter')?.value || 'all';
+  const sfParam  = sfRaw === 'all' ? '' : `&published=${sfRaw === 'published' ? 1 : 0}`;
+  const srchParam = search ? `&search=${encodeURIComponent(search)}` : '';
+
+  const res = await api(`posts.php?admin=1${sfParam}${srchParam}&per_page=50`);
+  if (!res || !res.ok) {
+    document.getElementById('postsTableWrap').innerHTML =
+      '<div class="empty-table"><div class="ei">❌</div><p>Failed to load posts.</p></div>';
+    return;
+  }
+
+  document.getElementById('postsTableWrap').innerHTML = buildTable(res.data.posts, false);
+}
+
+function buildTable(list, compact = false) {
+  if (!list || !list.length)
+    return '<div class="empty-table"><div class="ei">📭</div><p>No posts found.</p></div>';
+
+  return `<table>
+    <thead><tr>
+      <th>Title</th><th>Category</th><th>Status</th><th>SEO</th><th>Date</th>
+      ${compact ? '' : '<th>Actions</th>'}
+    </tr></thead>
+    <tbody>${list.map(p => `<tr>
+      <td class="post-title-cell">${esc(p.title)}<small>${esc((p.excerpt||'').slice(0,55))}…</small></td>
+      <td><span class="badge badge-cat">${esc(p.category)}</span></td>
+      <td><span class="badge ${p.published ? 'badge-published' : 'badge-draft'}">${p.published ? '✅ Live' : '📋 Draft'}</span></td>
+      <td><span title="${p.seo_title && p.seo_keywords ? 'Fully optimised' : 'Incomplete SEO'}">${p.seo_title && p.seo_keywords ? '🟢' : '🟡'}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${fmtDate(p.publish_date || p.created_at)}</td>
+      ${compact ? '' : `<td><div class="action-btns">
+        <button class="btn-icon" title="Edit" onclick="editPost(${p.id})">✏️</button>
+        <button class="btn-icon" title="${p.published ? 'Unpublish' : 'Publish'}" onclick="togglePublish(${p.id}, this)">${p.published ? '🔒' : '🚀'}</button>
+        <button class="btn-icon danger" title="Delete" onclick="confirmDelete(${p.id})">🗑️</button>
+      </div></td>`}
+    </tr>`).join('')}</tbody></table>`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  EDITOR INIT
+// ════════════════════════════════════════════════════════════
+function initEditorOptions() {
+  document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e =>
+    `<button class="emoji-opt ${e === selectedEmoji ? 'selected' : ''}" onclick="selectEmoji('${e}',this)">${e}</button>`
+  ).join('');
+  document.getElementById('colorGrid').innerHTML = COLORS.map(c =>
+    `<div class="color-opt ${c === selectedColor ? 'selected' : ''}" style="background:${c}" onclick="selectColor('${c}',this)"></div>`
+  ).join('');
+}
+
+function selectEmoji(e, el) {
+  selectedEmoji = e;
+  document.querySelectorAll('.emoji-opt').forEach(x => x.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function selectColor(c, el) {
+  selectedColor = c;
+  document.querySelectorAll('.color-opt').forEach(x => x.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function resetEditor() {
+  editingId = null;
+  selectedEmoji = '📄';
+  selectedColor = '#0A1628';
+  keywords = [];
+  ['editTitle','editExcerpt','editContent','seoTitle','seoDesc','seoCanonical',
+   'ogTitle','ogDesc','ogImage','kwBulk'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('editAuthor').value  = 'Dr. Siya Seth';
+  document.getElementById('editDate').value    = new Date().toISOString().split('T')[0];
+  document.getElementById('editReadTime').value = '5';
+  document.getElementById('editCategory').value = 'Tendering';
+  document.getElementById('schemaEnabled').checked = true;
+  document.getElementById('faqSchema').checked = false;
+  renderKeywordTags();
+  updateSeoPreview();
+  initEditorOptions();
+  switchTab('content', document.querySelectorAll('.etab')[0]);
+  setBtnLoading(false);
+}
+
+function newPost() {
+  resetEditor();
+  document.getElementById('topbarTitle').textContent = 'New Post';
+}
+
+// ── GET single post for editing — GET /api/posts.php?admin=1&id=X ──
+async function editPost(id) {
+  showPage('editor', null);
+  document.getElementById('topbarTitle').textContent = 'Loading…';
+
+  const res = await api(`posts.php?admin=1&id=${id}`);
+  if (!res || !res.ok) { toast('Failed to load post.', 'error'); return; }
+
+  const p = res.data.post;
+  editingId = p.id;
+  selectedEmoji = p.emoji || '📄';
+  selectedColor = p.card_color || '#0A1628';
+  keywords = (p.seo_keywords || '').split(',').map(k => k.trim()).filter(Boolean);
+
+  document.getElementById('editTitle').value    = p.title;
+  document.getElementById('editExcerpt').value  = p.excerpt;
+  document.getElementById('editContent').value  = p.content;
+  document.getElementById('editAuthor').value   = p.author;
+  document.getElementById('editDate').value     = p.publish_date || new Date().toISOString().split('T')[0];
+  document.getElementById('editReadTime').value = p.read_time;
+  document.getElementById('editCategory').value = p.category;
+  document.getElementById('seoTitle').value     = p.seo_title || '';
+  document.getElementById('seoDesc').value      = p.seo_description || '';
+  document.getElementById('seoCanonical').value = p.seo_canonical || '';
+  document.getElementById('ogTitle').value      = p.og_title || '';
+  document.getElementById('ogDesc').value       = p.og_description || '';
+  document.getElementById('ogImage').value      = p.og_image || '';
+  document.getElementById('schemaEnabled').checked = p.schema_enabled;
+  document.getElementById('faqSchema').checked  = p.faq_schema;
+  document.getElementById('kwBulk').value       = keywords.join(', ');
+
+  renderKeywordTags();
+  updateSeoPreview();
+  initEditorOptions();
+  switchTab('content', document.querySelectorAll('.etab')[0]);
+  setBtnLoading(false);
+  document.getElementById('topbarTitle').textContent = 'Edit Post';
+}
+
+// ── CREATE — POST /api/posts.php ─────────────────────────────
+// ── UPDATE — PUT  /api/posts.php?id=X ───────────────────────
+async function savePost(publish) {
+  const title   = document.getElementById('editTitle').value.trim();
+  const excerpt = document.getElementById('editExcerpt').value.trim();
+  const content = document.getElementById('editContent').value.trim();
+
+  if (!title || !excerpt || !content) {
+    toast('⚠️ Title, Excerpt and Content are required.', 'error');
+    return;
+  }
+
+  setBtnLoading(true);
+
+  const payload = {
+    title, excerpt, content,
+    author:          document.getElementById('editAuthor').value || 'Dr. Siya Seth',
+    publish_date:    document.getElementById('editDate').value || new Date().toISOString().split('T')[0],
+    read_time:       parseInt(document.getElementById('editReadTime').value) || 5,
+    category:        document.getElementById('editCategory').value,
+    emoji:           selectedEmoji,
+    card_color:      selectedColor,
+    published:       publish,
+    seo_title:       document.getElementById('seoTitle').value.trim(),
+    seo_description: document.getElementById('seoDesc').value.trim(),
+    seo_keywords:    keywords.join(','),
+    seo_canonical:   document.getElementById('seoCanonical').value.trim(),
+    og_title:        document.getElementById('ogTitle').value.trim(),
+    og_description:  document.getElementById('ogDesc').value.trim(),
+    og_image:        document.getElementById('ogImage').value.trim(),
+    schema_enabled:  document.getElementById('schemaEnabled').checked,
+    faq_schema:      document.getElementById('faqSchema').checked,
+  };
+
+  let res;
+  if (editingId) {
+    // UPDATE (PUT)
+    res = await api(`posts.php?id=${editingId}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  } else {
+    // CREATE (POST)
+    res = await api('posts.php', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  setBtnLoading(false);
+
+  if (!res || !res.ok) {
+    toast('❌ ' + (res?.data?.message || 'Save failed. Check console.'), 'error');
+    return;
+  }
+
+  toast(publish ? '🚀 Post published!' : '💾 Draft saved!', 'success');
+  editingId = null;
+  showPage('posts', null);
+  loadPosts();
+}
+
+// ── TOGGLE PUBLISH — PATCH /api/posts.php?id=X&action=toggle ──
+async function togglePublish(id, btn) {
+  btn.disabled = true;
+  const res = await api(`posts.php?id=${id}&action=toggle`, { method: 'PATCH' });
+  btn.disabled = false;
+
+  if (!res || !res.ok) { toast('Failed to update post.', 'error'); return; }
+
+  const nowPublished = res.data.published;
+  btn.textContent = nowPublished ? '🔒' : '🚀';
+  btn.title = nowPublished ? 'Unpublish' : 'Publish';
+  toast(nowPublished ? '✅ Post published.' : '🔒 Post unpublished.', 'success');
+  loadDashboard();
+}
+
+// ── DELETE — DELETE /api/posts.php?id=X ─────────────────────
+let deleteTargetId = null;
+
+function confirmDelete(id) {
+  deleteTargetId = id;
+  document.getElementById('confirmOverlay').classList.add('open');
+  document.getElementById('confirmDeleteBtn').onclick = async () => {
+    document.getElementById('confirmDeleteBtn').textContent = 'Deleting…';
+    document.getElementById('confirmDeleteBtn').disabled = true;
+
+    const res = await api(`posts.php?id=${deleteTargetId}`, { method: 'DELETE' });
+
+    document.getElementById('confirmDeleteBtn').textContent = 'Delete';
+    document.getElementById('confirmDeleteBtn').disabled = false;
+    closeConfirm();
+
+    if (!res || !res.ok) { toast('Failed to delete post.', 'error'); return; }
+    toast('🗑️ Post deleted.', 'success');
+    loadPosts();
+    loadDashboard();
+  };
+}
+
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('open');
+  deleteTargetId = null;
+}
+
+// ════════════════════════════════════════════════════════════
+//  KEYWORD SYSTEM
+// ════════════════════════════════════════════════════════════
+function addKeyword() {
+  const inp = document.getElementById('kwInput');
+  inp.value.split(',').map(k => k.trim()).filter(Boolean).forEach(k => {
+    if (k && !keywords.includes(k) && keywords.length < 12) keywords.push(k);
+  });
+  inp.value = '';
+  document.getElementById('kwBulk').value = keywords.join(', ');
+  renderKeywordTags();
+  updateSeoPreview();
+}
+
+function removeKeyword(k) {
+  keywords = keywords.filter(x => x !== k);
+  document.getElementById('kwBulk').value = keywords.join(', ');
+  renderKeywordTags();
+  updateSeoPreview();
+}
+
+function syncBulkKeywords() {
+  keywords = document.getElementById('kwBulk').value.split(',').map(k => k.trim()).filter(Boolean).slice(0, 12);
+  renderKeywordTags();
+  updateSeoPreview();
+}
+
+function renderKeywordTags() {
+  document.getElementById('kwTags').innerHTML = keywords.map(k =>
+    `<span class="kw-tag">${esc(k)}<button class="kw-remove" onclick="removeKeyword('${esc(k)}')">×</button></span>`
+  ).join('');
+  document.getElementById('kwCount').textContent =
+    `${keywords.length} keyword${keywords.length !== 1 ? 's' : ''} added (max 12)`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  SEO PREVIEW + SCORE
+// ════════════════════════════════════════════════════════════
+function updateSeoPreview() {
+  const title  = document.getElementById('seoTitle')?.value || document.getElementById('editTitle')?.value || '';
+  const desc   = document.getElementById('seoDesc')?.value  || document.getElementById('editExcerpt')?.value || '';
+  const slug   = (document.getElementById('editTitle')?.value || 'article')
+                   .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  document.getElementById('prevTitle').textContent = (title || 'Your SEO title…').slice(0, 65);
+  document.getElementById('prevDesc').textContent  = (desc  || 'Your meta description…').slice(0, 160);
+  document.getElementById('prevUrl').textContent   = `gwmeindia.com › blog › ${slug}`;
+
+  // Char counters
+  const tc = document.getElementById('seoTitle').value.length;
+  const dc = document.getElementById('seoDesc').value.length;
+  const tcEl = document.getElementById('seoTitleCount');
+  const dcEl = document.getElementById('seoDescCount');
+  tcEl.textContent = `${tc}/60`;
+  tcEl.className = 'char-count ' + (tc >= 50 && tc <= 60 ? 'ok' : tc > 60 ? 'over' : 'warn');
+  dcEl.textContent = `${dc}/155`;
+  dcEl.className = 'char-count ' + (dc >= 120 && dc <= 155 ? 'ok' : dc > 155 ? 'over' : 'warn');
+
+  // Score
+  let score = 0;
+  if (document.getElementById('editTitle')?.value.length > 10) score += 15;
+  if (document.getElementById('editExcerpt')?.value.length > 80) score += 10;
+  if (document.getElementById('editContent')?.value.length > 500) score += 15;
+  if (tc >= 50 && tc <= 60) score += 20;
+  if (dc >= 120 && dc <= 155) score += 20;
+  if (keywords.length >= 3) score += 10;
+  if (keywords.length >= 6) score += 5;
+  if (document.getElementById('ogImage')?.value) score += 5;
+
+  const fill  = document.getElementById('scoreFill');
+  const label = document.getElementById('scoreLabel');
+  const color = score >= 80 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#ef4444';
+  fill.style.width = score + '%';
+  fill.style.background = color;
+  label.textContent = score + '/100';
+  label.style.color = color;
+}
+
+// Live update score
+['editTitle','editExcerpt','editContent','seoTitle','seoDesc','ogImage'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', updateSeoPreview);
+});
+
+// ════════════════════════════════════════════════════════════
+//  UTILITIES
+// ════════════════════════════════════════════════════════════
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function setBtnLoading(loading) {
+  const btnP = document.getElementById('btnPublish');
+  const btnD = document.getElementById('btnDraft');
+  btnP.disabled = loading;
+  btnD.disabled = loading;
+  if (loading) {
+    btnP.innerHTML = '<span class="api-spinner"></span>Saving…';
+    btnD.innerHTML = '<span class="api-spinner"></span>Saving…';
+  } else {
+    btnP.textContent = '🚀 Publish Now';
+    btnD.textContent = '💾 Save as Draft';
+  }
+}
+
+function toast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── Start ────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
