@@ -5,6 +5,7 @@
 
 define('DB_HOST',    'localhost');
 define('DB_PORT',    '3306');
+
 define('DB_NAME',    'gwme_india');
 define('DB_USER',    'root');       // ← change to your MySQL username
 define('DB_PASS',    'Gwme@2025India');           // ← change to your MySQL password
